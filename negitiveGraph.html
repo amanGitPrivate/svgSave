@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+  <head>
+    <script src="http://d3js.org/d3.v2.min.js?2.10.0"></script>
+    <script type="text/javascript" src="../d3.v2.js" charset="utf-8" ></script>
+    <script type="text/javascript" src="column-chart.js"></script>
+    <script src="https://rawgit.com/MrRio/jsPDF/master/dist/jspdf.debug.js"></script>
+<style>
+
+.chart rect {
+  stroke: white;
+  fill-opacity: .6;
+  fill: steelblue;
+
+}
+.bar.positive {
+  fill: steelblue;
+}
+
+.bar.negative {
+  fill: brown;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+
+</style>
+
+  </head>
+  <body>
+  <div id="example"></div>
+  <button type="button" onclick="doPDF();">PDF</button>
+  <button type="button" onclick="doPNG();">PNG</button>
+<script>
+
+var data = [["A",0.012], ["B",-0.025], ["C",0.008], ["D",0.023], ["E",-0.009], ["F", 0.005]];
+
+
+d3.select("#example")
+  .datum(data)
+    .call(columnChart()
+      .width(960)
+      .height(500)
+      .x(function(d, i) { return d[0]; })
+      .y(function(d, i) { return d[1]; }));
+
+function doPDF(){
+  svg_to_pdf(document.querySelector("svg"),function (pdf) {
+      download_pdf('SVG.pdf', pdf.output('dataurlstring'));
+  });
+}
+
+function svg_to_pdf(svg, callback) {
+  svgAsDataUri(svg, {}, function(svg_uri) {
+    var image = document.createElement('img');
+
+    image.src = svg_uri;
+    image.onload = function() {
+      var canvas = document.createElement('canvas');
+      var context = canvas.getContext('2d');
+      var doc = new jsPDF('portrait', 'pt');
+      var dataUrl;
+
+      canvas.width = image.width;
+      canvas.height = image.height;
+      context.drawImage(image, 0, 0, image.width, image.height);
+      dataUrl = canvas.toDataURL('image/jpeg');
+      doc.addImage(dataUrl, 'JPEG', 0, 0, image.width, image.height);
+
+      callback(doc);
+    }
+  });
+}
+
+function download_pdf(name, dataUriString) {
+  var link = document.createElement('a');
+  link.addEventListener('click', function(ev) {
+    link.href = dataUriString;
+    link.download = name;
+    document.body.removeChild(link);
+  }, false);
+  document.body.appendChild(link);
+  link.click();
+}
+
+function doPNG(){
+  saveSvgAsPng(document.getElementsByTagName("svg")[0], "plot.png");
+}
+
+</script>
+
+
+  </body>
+</html>
